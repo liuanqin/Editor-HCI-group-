@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+
+<body>
+<h1>Code Editor</h1>
+<button id="trash">Trash</button>
+    <button id="undo">Undo</button>
+    <button id="redo">Redo</button>
+<div class="canvas-text-editor" tabindex="0">
+
+<canvas id="myCanvas" style="width:100%; height: board.innerHeight; border:1px solid #000000;">
+</canvas>
+</div>
+<textarea id="myTextArea" autofocus  style="font-family:Times New Roman; font-size: 22px"></textarea>
+
+<div id="board">
+
+    <br/>
+    <canvas id="canvas" ></canvas>
+    <br/>
+    <pre id="result"><em style="color: white;"></em></pre>
+
+</div>
+<style type="text/css" media="screen">
+html, body {
+	width: 100%;
+	height: 100%;
+}
+#myCanvas{
+
+    position:absolute; top:15%; left:0; right:0; bottom:0;
+    border:1px solid #999999;
+    width:100%;
+    height: 100%;
+    margin:5px 0;
+    padding:3px;
+    box-sizing: border-box;         /* For IE and modern versions of Chrome */
+  -moz-box-sizing: border-box;    /* For Firefox                          */
+  -webkit-box-sizing: border-box;
+}
+#board{
+  position:absolute; top:15%; left:0; right:0; bottom:0;
+  width:100%;
+  height: 100%;
+  margin:5px 0;
+  padding:3px;
+  box-sizing: border-box;         /* For IE and modern versions of Chrome */
+-moz-box-sizing: border-box;    /* For Firefox                          */
+-webkit-box-sizing: border-box;
+}
+textarea
+{
+  position:absolute; top:15%; left:0; right:0; bottom:0;
+  border:1px solid #999999;
+  width:100%;
+  height: 100%;
+  margin:5px 0;
+  padding:3px;
+  box-sizing: border-box;         /* For IE and modern versions of Chrome */
+-moz-box-sizing: border-box;    /* For Firefox                          */
+-webkit-box-sizing: border-box;
+}
+</style>
+
+<script>
+        var canvas = document.getElementById('canvas');
+        var parent = document.getElementById('board');
+
+        canvas.height = parent.offsetHeight;
+        canvas.width = parent.offsetWidth;
+
+
+
+</script>
+</body>
+<script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/sample/lib/core-min.js"></script>
+<script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/sample/lib/x64-core-min.js"></script>
+<script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/sample/lib/sha512-min.js"></script>
+<script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/sample/lib/hmac-min.js"></script>
+<script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/sample/lib/q.js"></script>
+<script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/sample/lib/hand.minified-1.3.8.js"></script>
+<script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/myscript.min.js"></script>
+<script>
+    (function () {
+        var result = document.getElementById('result');
+        var canvas = document.getElementById('canvas');
+        var trash = document.getElementById('trash');
+        var undo = document.getElementById('undo');
+        var redo = document.getElementById('redo');
+        var languages = document.getElementById('languages');
+        var context = canvas.getContext('2d');
+        var pointerId;
+
+        var applicationKey =  "1b96efa9-7fc3-4bf2-8881-db20c37b556e";
+        var hmacKey =  "c504e889-4716-436c-8bd9-e4af59f546ef";
+
+        var inkManager = new MyScript.InkManager();
+        var textRenderer = new MyScript.TextRenderer();
+        var textRecognizer = new MyScript.TextRecognizer();
+        var instanceId;
+
+        //div = document.getElementById("divGameStage");
+        //div.appendChild(canvas);
+
+        function insertAtCursor(myField, myValue) {
+            //IE support
+            if (document.selection) {
+                myField.focus();
+                sel = document.selection.createRange();
+                sel.text = myValue;
+            }
+            //MOZILLA and others
+            else if (myField.selectionStart || myField.selectionStart == '0') {
+                var startPos = myField.selectionStart;
+                var endPos = myField.selectionEnd;
+                myField.value = myField.value.substring(0, startPos)
+                    + myValue
+                    + myField.value.substring(endPos, myField.value.length);
+            } else {
+                myField.value += myValue;
+            }
+        }
+
+        function doRecognition() {
+
+            if (inkManager.isEmpty()) {
+                result.innerHTML = '';
+            } else {
+
+                var inputUnit = new MyScript.TextInputUnit();
+                inputUnit.setComponents(inkManager.getStrokes());
+
+                var units = [inputUnit];
+
+                textRecognizer.doSimpleRecognition(applicationKey, instanceId, units, hmacKey).then(
+                        function (data) {
+                            if (!instanceId) {
+                                instanceId = data.getInstanceId();
+                            } else if (instanceId !== data.getInstanceId()) {
+                                return;
+                            }
+
+                            result.innerHTML = data.getTextDocument().getTextSegmentResult().getSelectedCandidate().getLabel();
+                            insertAtCursor(myTextArea, result.innerHTML);
+
+                            //console.log(result.innerHTML);
+                            //console.log(myTextArea.value);
+                            instanceId = undefined;
+                            textRenderer.clear(context);
+                            inkManager.clear();
+                            result.innerHTML = '';
+                            //insertAtCaret('editor',result.innerHTML);
+
+
+                        }
+                );
+            }
+        }
+
+
+        canvas.addEventListener('pointerdown', function (event) {
+            if (!pointerId) {
+                pointerId = event.pointerId;
+                event.preventDefault();
+
+                textRenderer.drawStart(event.offsetX, event.offsetY);
+                inkManager.startInkCapture(event.offsetX, event.offsetY);
+            }
+        }, false);
+
+        canvas.addEventListener('pointermove', function (event) {
+            if (pointerId === event.pointerId) {
+                event.preventDefault();
+
+                textRenderer.drawContinue(event.offsetX, event.offsetY, context);
+                inkManager.continueInkCapture(event.offsetX, event.offsetY);
+            }
+        }, false);
+
+        canvas.addEventListener('pointerup', function (event) {
+            if (pointerId === event.pointerId) {
+                event.preventDefault();
+
+                textRenderer.drawEnd(event.offsetX, event.offsetY, context);
+                inkManager.endInkCapture();
+                pointerId = undefined;
+                doRecognition();
+            }
+        }, false);
+
+        canvas.addEventListener('pointerleave', function (event) {
+            if (pointerId === event.pointerId) {
+                event.preventDefault();
+
+                textRenderer.drawEnd(event.offsetX, event.offsetY, context);
+                inkManager.endInkCapture();
+                pointerId = undefined;
+                doRecognition();
+            }
+        }, false);
+
+        trash.addEventListener('click', function trash() {
+            instanceId = undefined;
+            textRenderer.clear(context);
+            inkManager.clear();
+            result.innerHTML = '';
+        }, false);
+
+        undo.addEventListener('click', function () {
+            if (!inkManager.isEmpty()) {
+                inkManager.undo();
+                textRenderer.clear(context);
+                textRenderer.drawStrokes(inkManager.getStrokes(), context);
+            }
+            doRecognition();
+        }, false);
+
+        redo.addEventListener('click', function () {
+            if (!inkManager.isRedoEmpty()) {
+                inkManager.redo();
+                textRenderer.clear(context);
+                textRenderer.drawStrokes(inkManager.getStrokes(), context);
+            }
+            doRecognition();
+        }, false);
+
+
+
+    })();
+</script>
+</html>
