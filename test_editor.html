@@ -3,15 +3,23 @@
 
 <body>
 <h1>Code Editor</h1>
-<button id="trash">Trash</button>
-    <button id="undo">Undo</button>
+  <!--  <button id="undo">Undo</button>
     <button id="redo">Redo</button>
-<div class="canvas-text-editor" tabindex="0">
+    <select id="dropdown">
+    <option value="">Size</option>
+    <option value="text1">12px</option>
+    <option value="text2">18px</option>
+    <option value="text3">22px</option>
+    <option value="text4">26px</option>
+</select>-->
+<div id="links">
+<input type="button" value="Type"  onclick="reset('board'); up('canvas-text-editor');moveCaretToEnd('myTextArea');document.getElementById('myTextArea').focus(); ">
+<input type="button" value="Write" onclick="reset('canvas-text-editor'); up('board');moveCaretToEnd('myTextArea');document.getElementById('myTextArea').focus();">
+<input type="button" value="Trash" id="trash">
+<div id="canvas-text-editor">
+  <textarea id="myTextArea"></textarea>
 
-<canvas id="myCanvas" style="width:100%; height: board.innerHeight; border:1px solid #000000;">
-</canvas>
 </div>
-<textarea id="myTextArea" autofocus  style="font-family:Times New Roman; font-size: 22px"></textarea>
 
 <div id="board">
 
@@ -21,54 +29,100 @@
     <pre id="result"><em style="color: white;"></em></pre>
 
 </div>
+<script type="text/javascript">
+
+function moveCaretToEnd(el) {
+    if (typeof el.selectionStart == "number") {
+        el.selectionStart = el.selectionEnd = el.value.length;
+    } else if (typeof el.createTextRange != "undefined") {
+        el.focus();
+        var range = el.createTextRange();
+        range.collapse(false);
+        range.select();
+    }
+}
+</script>
 <style type="text/css" media="screen">
 html, body {
 	width: 100%;
 	height: 100%;
 }
-#myCanvas{
-
-    position:absolute; top:15%; left:0; right:0; bottom:0;
-    border:1px solid #999999;
+#canvas-text-editor{
+    position:absolute; top:18%; left:0; right:0; bottom:0;
     width:100%;
     height: 100%;
     margin:5px 0;
     padding:3px;
+    z-index:-1;
+    overflow-y: : hidden;
     box-sizing: border-box;         /* For IE and modern versions of Chrome */
   -moz-box-sizing: border-box;    /* For Firefox                          */
   -webkit-box-sizing: border-box;
 }
-#board{
-  position:absolute; top:15%; left:0; right:0; bottom:0;
+#canvas{
+  position:absolute; top:0; left:0; right:0; bottom:0;
   width:100%;
   height: 100%;
-  margin:5px 0;
-  padding:3px;
+  overflow-y: : hidden;
+  z-index:1;
+  box-sizing: border-box;         /* For IE and modern versions of Chrome */
+-moz-box-sizing: border-box;    /* For Firefox                          */
+-webkit-box-sizing: border-box;
+}
+#board{
+  position:absolute; top:18%; left:0; right:0; bottom:0;
+  width:100%;
+  height: 100%;
+  overflow-y: : hidden;
+  z-index:1;
   box-sizing: border-box;         /* For IE and modern versions of Chrome */
 -moz-box-sizing: border-box;    /* For Firefox                          */
 -webkit-box-sizing: border-box;
 }
 textarea
 {
-  position:absolute; top:15%; left:0; right:0; bottom:0;
+  position:absolute; top:0; left:0; right:0; bottom:0;
   border:1px solid #999999;
   width:100%;
   height: 100%;
   margin:5px 0;
   padding:3px;
+  overflow-y: : hidden;
+  font-family:Times New Roman;
+   font-size: 26px;
   box-sizing: border-box;         /* For IE and modern versions of Chrome */
 -moz-box-sizing: border-box;    /* For Firefox                          */
 -webkit-box-sizing: border-box;
 }
 </style>
 
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 <script>
+
+function reset(id)
+{
+    document.getElementById(id).style.zIndex = '0';
+}
+
+function up(id)
+{
+    document.getElementById(id).style.zIndex = '1';
+}
+
+
         var canvas = document.getElementById('canvas');
         var parent = document.getElementById('board');
 
         canvas.height = parent.offsetHeight;
         canvas.width = parent.offsetWidth;
 
+      /*  var mytextbox = document.getElementById('myTextArea');
+        var mydropdown = document.getElementById('dropdown');
+
+           mydropdown.onchange = function(){
+                 mytextbox.fontSize = this.value; //to appened
+                //mytextbox.innerHTML = this.value;
+           }*/
 
 
 </script>
@@ -84,10 +138,10 @@ textarea
     (function () {
         var result = document.getElementById('result');
         var canvas = document.getElementById('canvas');
-        var trash = document.getElementById('trash');
-        var undo = document.getElementById('undo');
-        var redo = document.getElementById('redo');
-        var languages = document.getElementById('languages');
+        //var trash = document.getElementById('trash');
+        //var undo = document.getElementById('undo');
+        //var redo = document.getElementById('redo');
+        //var languages = document.getElementById('languages');
         var context = canvas.getContext('2d');
         var pointerId;
 
@@ -102,6 +156,7 @@ textarea
         //div = document.getElementById("divGameStage");
         //div.appendChild(canvas);
 
+        // insert text at the cursor
         function insertAtCursor(myField, myValue) {
             //IE support
             if (document.selection) {
@@ -139,12 +194,15 @@ textarea
                             } else if (instanceId !== data.getInstanceId()) {
                                 return;
                             }
-
                             result.innerHTML = data.getTextDocument().getTextSegmentResult().getSelectedCandidate().getLabel();
+
+
+
                             insertAtCursor(myTextArea, result.innerHTML);
 
                             //console.log(result.innerHTML);
                             //console.log(myTextArea.value);
+
                             instanceId = undefined;
                             textRenderer.clear(context);
                             inkManager.clear();
@@ -184,7 +242,10 @@ textarea
                 textRenderer.drawEnd(event.offsetX, event.offsetY, context);
                 inkManager.endInkCapture();
                 pointerId = undefined;
-                doRecognition();
+                //setTimeout(function() {
+                  //console.log(result.innerHTML);
+                  doRecognition();
+              //  }, 2000);
             }
         }, false);
 
@@ -195,7 +256,10 @@ textarea
                 textRenderer.drawEnd(event.offsetX, event.offsetY, context);
                 inkManager.endInkCapture();
                 pointerId = undefined;
-                doRecognition();
+                setTimeout(function() {
+                  //console.log(result.innerHTML);
+                  doRecognition();
+                }, 2000);
             }
         }, false);
 
@@ -206,7 +270,7 @@ textarea
             result.innerHTML = '';
         }, false);
 
-        undo.addEventListener('click', function () {
+      /*  undo.addEventListener('click', function () {
             if (!inkManager.isEmpty()) {
                 inkManager.undo();
                 textRenderer.clear(context);
@@ -222,7 +286,7 @@ textarea
                 textRenderer.drawStrokes(inkManager.getStrokes(), context);
             }
             doRecognition();
-        }, false);
+        }, false);*/
 
 
 
