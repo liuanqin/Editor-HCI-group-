@@ -1,7 +1,11 @@
 <!doctype html>
 <html lang="en">
+<head>
+  <title>ND HCI Group -- Code Editor</title>
 
-<body>
+<script type="text/javascript" src="./caretposition.js"></script>
+</head>
+<body onload="init()">
 <h1>Code Editor</h1>
   <!--  <button id="undo">Undo</button>
     <button id="redo">Redo</button>
@@ -14,10 +18,10 @@
 </select>-->
 <div id="links">
 <input type="button" value="Type"  onclick="reset('board'); up('canvas-text-editor');moveCaretToEnd('myTextArea');document.getElementById('myTextArea').focus(); ">
-<input type="button" value="Write" onclick="reset('canvas-text-editor'); up('board');moveCaretToEnd('myTextArea');document.getElementById('myTextArea').focus();">
-<input type="button" value="Trash" id="trash">
+<input type="button" value="Write" onclick="reset('canvas-text-editor'); up('board');moveCaretToEnd('myTextArea');hideKeyboard;document.getElementById('myTextArea').focus();readonly='true'; ">
+<input type="button" value="do" onclick="doRecognition();">
 <div id="canvas-text-editor">
-  <textarea id="myTextArea"></textarea>
+  <textarea id="myTextArea" hideKeyboard; atuofocus></textarea>
 
 </div>
 
@@ -30,6 +34,21 @@
 
 </div>
 <script type="text/javascript">
+
+function init()
+{
+document.getElementById('myTextArea').focus();
+hideKeyboard();
+
+};
+
+var hideKeyboard = function() {
+ document.activeElement.blur();
+ var inputs = document.querySelectorAll('input');
+ for(var i=0; i < inputs.length; i++) {
+  inputs[i].blur();
+ }
+};
 
 function moveCaretToEnd(el) {
     if (typeof el.selectionStart == "number") {
@@ -96,7 +115,10 @@ textarea
 }
 </style>
 
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js">
+$('#myTextArea').on('focus', 'input', function() { $(this).blur(); });
+
+</script>
 <script>
 
 function reset(id)
@@ -123,10 +145,17 @@ function up(id)
                  mytextbox.fontSize = this.value; //to appened
                 //mytextbox.innerHTML = this.value;
            }*/
-
+           setInterval(function () {
+           var textArea = document.getElementById("myTextArea");
+           var caretPosition = Measurement.caretPos(textArea);
+           console.log(caretPosition.left);
+           console.log(caretPosition.top);
+         },2000);
 
 </script>
 </body>
+<p id="demo"></p>
+
 <script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/sample/lib/core-min.js"></script>
 <script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/sample/lib/x64-core-min.js"></script>
 <script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/sample/lib/sha512-min.js"></script>
@@ -134,6 +163,8 @@ function up(id)
 <script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/sample/lib/q.js"></script>
 <script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/sample/lib/hand.minified-1.3.8.js"></script>
 <script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/myscript.min.js"></script>
+<script type="text/javascript" src="./caretposition.js"></script>
+
 <script>
     (function () {
         var result = document.getElementById('result');
@@ -156,6 +187,49 @@ function up(id)
         //div = document.getElementById("divGameStage");
         //div.appendChild(canvas);
 
+        var lastFocused;
+        $("#myTextArea").focus(function() {
+          lastFocused = document.activeElement;
+        });
+
+        //http://stackoverflow.com/questions/1064089/inserting-a-text-where-cursor-is-using-javascript-jquery
+        function insertText(text) {
+          var input = lastFocused;
+          console.log(input);
+          if (input == undefined) { return; }
+          var scrollPos = input.scrollTop;
+          var pos = 0;
+          var browser = ((input.selectionStart || input.selectionStart == "0") ?
+            "ff" : (document.selection ? "ie" : false ) );
+          if (browser == "ie") {
+            input.focus();
+            var range = document.selection.createRange();
+            range.moveStart ("character", -input.value.length);
+            pos = range.text.length;
+          }
+          else if (browser == "ff") { pos = input.selectionStart };
+
+          var front = (input.value).substring(0, pos);
+          var back = (input.value).substring(pos, input.value.length);
+          input.value = front+text+back;
+          pos = pos + text.length;
+          if (browser == "ie") {
+            input.focus();
+            var range = document.selection.createRange();
+            range.moveStart ("character", -input.value.length);
+            range.moveStart ("character", pos);
+            range.moveEnd ("character", 0);
+            range.select();
+          }
+          else if (browser == "ff") {
+            input.selectionStart = pos;
+            input.selectionEnd = pos;
+            input.focus();
+          }
+          input.scrollTop = scrollPos;
+        }
+
+
         // insert text at the cursor
         function insertAtCursor(myField, myValue) {
             //IE support
@@ -171,6 +245,10 @@ function up(id)
                 myField.value = myField.value.substring(0, startPos)
                     + myValue
                     + myField.value.substring(endPos, myField.value.length);
+                    console.log(startPos + " is start");
+                    console.log(endPos + " is end");
+
+
             } else {
                 myField.value += myValue;
             }
@@ -194,12 +272,12 @@ function up(id)
                             } else if (instanceId !== data.getInstanceId()) {
                                 return;
                             }
-                            result.innerHTML = data.getTextDocument().getTextSegmentResult().getSelectedCandidate().getLabel();
+                            result.innerHTML = data.getTextDocument().getTextSegmentResult().getSelectedCandidate().getLabel()+" ";
 
 
 
-                            insertAtCursor(myTextArea, result.innerHTML);
-
+                            //insertAtCursor(myTextArea, result.innerHTML);
+                            insertText(result.innerHTML);
                             //console.log(result.innerHTML);
                             //console.log(myTextArea.value);
 
@@ -208,6 +286,7 @@ function up(id)
                             inkManager.clear();
                             result.innerHTML = '';
                             //insertAtCaret('editor',result.innerHTML);
+                            hideKeyboard();
 
 
                         }
@@ -235,19 +314,29 @@ function up(id)
             }
         }, false);
 
+        var timer = (new Date()).getTime();
         canvas.addEventListener('pointerup', function (event) {
             if (pointerId === event.pointerId) {
+
                 event.preventDefault();
 
                 textRenderer.drawEnd(event.offsetX, event.offsetY, context);
                 inkManager.endInkCapture();
-                pointerId = undefined;
+                timer = (new Date()).getTime();                //onClickCheck();
                 //setTimeout(function() {
                   //console.log(result.innerHTML);
-                  doRecognition();
-              //  }, 2000);
-            }
+              /* setTimeout(function (){
+               while (pointerId == undefined) {
+                   // point up function again
+                   break;
+           }
+         },200);*/
+
+           pointerId = undefined;
+          //doRecognition();
+   }
         }, false);
+
 
         canvas.addEventListener('pointerleave', function (event) {
             if (pointerId === event.pointerId) {
@@ -256,21 +345,51 @@ function up(id)
                 textRenderer.drawEnd(event.offsetX, event.offsetY, context);
                 inkManager.endInkCapture();
                 pointerId = undefined;
-                setTimeout(function() {
+                doRecognition();
+
+              //  setTimeout(function() {
                   //console.log(result.innerHTML);
-                  doRecognition();
-                }, 2000);
+                //  doRecognition();
+            //    }, 2000);
             }
         }, false);
+/*
+        var lastClicked = (new Date()).getTime();
 
-        trash.addEventListener('click', function trash() {
+        canvas.pointerupEvent = function() {
+          lastClicked = (new Date()).getTime();
+          console.log("aa");
+
+};*/
+
+function onClickCheck() {
+    var timeNow = (new Date()).getTime();
+    if (timeNow > (timer + 800)) {
+
+        //console.log(timeNow - timer -1000);
+      doRecognition();
+    }
+
+       //timer = (new Date()).getTime();
+}
+
+
+//window.setInterval(onClickCheck(),1000);
+
+var myVar = setInterval(function(){ onClickCheck() }, 500);
+
+
+
+
+
+      /*  trash.addEventListener('click', function trash() {
             instanceId = undefined;
             textRenderer.clear(context);
             inkManager.clear();
             result.innerHTML = '';
         }, false);
 
-      /*  undo.addEventListener('click', function () {
+       undo.addEventListener('click', function () {
             if (!inkManager.isEmpty()) {
                 inkManager.undo();
                 textRenderer.clear(context);
