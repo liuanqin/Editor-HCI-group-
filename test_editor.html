@@ -15,6 +15,8 @@
 <div id="links">
 <input type="button" value="Type"  onclick="reset('board'); up('canvas-text-editor');moveCaretToEnd('myTextArea');document.getElementById('myTextArea').focus(); ">
 <input type="button" value="Write" onclick="reset('canvas-text-editor'); up('board');moveCaretToEnd('myTextArea');hideKeyboard;document.getElementById('myTextArea').focus();readonly='true'; ">
+<input type="button" value="Test" onclick="calculate(3);">
+
 <div id="canvas-text-editor">
   <textarea id="myTextArea" hideKeyboard; atuofocus></textarea>
 
@@ -74,8 +76,8 @@ textarea
   margin:5px 0;
   padding:3px;
   overflow-y: : hidden;
-  font-family:Times New Roman;
-   font-size: 26px;
+font-family: monospace;
+   font-size: 22px;
   box-sizing: border-box;         /* For IE and modern versions of Chrome */
 -moz-box-sizing: border-box;    /* For Firefox                          */
 -webkit-box-sizing: border-box;
@@ -111,12 +113,16 @@ textarea
     var textRecognizer = new MyScript.TextRecognizer();
     var instanceId;
 
+    var tempX = -1;
+    var tempY = -1;  //see if pointer moves
     canvas.addEventListener('pointerdown', function (event) {
         if (!pointerId) {
             pointerId = event.pointerId;
             event.preventDefault();
 
             textRenderer.drawStart(event.offsetX, event.offsetY);
+            tempX = event.offsetX;
+            tempY = event.offsetY;
             inkManager.startInkCapture(event.offsetX, event.offsetY);
         }
     }, false);
@@ -137,9 +143,26 @@ textarea
             event.preventDefault();
 
             textRenderer.drawEnd(event.offsetX, event.offsetY, context);
+
             inkManager.endInkCapture();
-            timer = (new Date()).getTime();                //onClickCheck();
-      
+            if (event.offsetX == tempX && event.offsetY == tempY){
+              //console.log(tempX);
+              console.log(tempY);
+
+console.log("number of lines" + Math.ceil((tempY-15)/25));
+              var totalChar = calculate(Math.ceil((tempY-15)/25)) + Math.ceil((tempX-4)/13);
+             console.log("total" + totalChar);
+             console.log("last line" +  Math.ceil(tempX/13));
+              setCaretPosition(document.getElementById('myTextArea'),totalChar);
+
+              textRenderer.clear(context);
+              inkManager.clear();
+              result.innerHTML = '';
+            }
+            else {
+              timer = (new Date()).getTime();
+            }               //onClickCheck();
+
        pointerId = undefined;
       //doRecognition();
 }
@@ -166,11 +189,16 @@ textarea
     canvas.height = parent.offsetHeight;
     canvas.width = parent.offsetWidth;
 
+    var left_space =0;
+    var top_space =0;
+
        setInterval(function () {
        var textArea = document.getElementById("myTextArea");
        var caretPosition = Measurement.caretPos(textArea);
-      // console.log(caretPosition.left);
-       //console.log(caretPosition.top);
+       left_space = Math.floor((caretPosition.left - 4)/13);
+       //console.log("left" + left_space);
+       top_space = Math.floor((caretPosition.top - 128)/25);
+       //console.log("top" + top_space);
      },2000);
 
      var lastFocused;

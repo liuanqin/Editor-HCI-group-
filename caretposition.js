@@ -5,6 +5,35 @@ caretposition.js
 Copyright (c) 2012- Hiroki Akiyama http://akiroom.com/
 caretposition.js is free software distributed under the terms of the MIT license.
 */
+function setCaretPosition(elem, caretPos) {
+		var range;
+
+		if (elem.createTextRange) {
+				range = elem.createTextRange();
+				range.move('character', caretPos);
+				range.select();
+		} else {
+				elem.focus();
+				if (elem.selectionStart !== undefined) {
+						elem.setSelectionRange(caretPos, caretPos);
+				}
+		}
+};
+
+
+// count number of characters before cursor. arrayOfLines[i].length" will return total characters in one line.
+// parameter is current position of lines
+			function calculate(chosenRow) {
+						 var totalChar = 0;
+		         var textArea = document.getElementById("myTextArea");
+		         var arrayOfLines = textArea.value.split("\n");
+		         for(var i = 0;i < chosenRow-1;i++){
+		             totalChar += arrayOfLines[i].length;
+								 totalChar++;
+								 //console.log("each line" + totalChar);
+		         }
+						 return totalChar;
+		     }
 
 Measurement = new function() {
 	this.caretPos = function(textarea, mode) {
@@ -20,7 +49,7 @@ Measurement = new function() {
 			obj[typeof obj.textContent != 'undefined'?'textContent':'innerText'] = s;
 			return obj.innerHTML;
   		};
-  		
+
 		// Get caret character position.
 		var getCaretPosition = function (element) {
 			var CaretPos = 0;
@@ -31,11 +60,11 @@ Measurement = new function() {
 				var docRange = document.selection.createRange();
 				var textRange = document.body.createTextRange();
 				textRange.moveToElementText(element);
-				
+
 				var range = textRange.duplicate();
 				range.setEndPoint('EndToStart', docRange);
 				startpos = range.text.length;
-				
+
 				var range = textRange.duplicate();
 				range.setEndPoint('EndToEnd', docRange);
 				endpos = range.text.length;
@@ -46,13 +75,13 @@ Measurement = new function() {
 			}
 			return {start: startpos, end: endpos};
 		};
-		
+
 		// Get element css style.
 		var getStyle = function (element) {
 			var style = element.currentStyle || document.defaultView.getComputedStyle(element, '');
 			return style;
 		};
-		
+
 		// Get element absolute position
 		var getElementPosition = function (element) {
 			// Get scroll amount.
@@ -60,7 +89,7 @@ Measurement = new function() {
 			var body = document.body;
 			var scrollLeft = (body.scrollLeft || html.scrollLeft);
 			var scrollTop  = (body.scrollTop || html.scrollTop);
-		
+
 			// Adjust "IE 2px bugfix" and scroll amount.
 			var rect = element.getBoundingClientRect();
 			var left = rect.left - html.clientLeft + scrollLeft;
@@ -70,11 +99,11 @@ Measurement = new function() {
 			return {left: parseInt(left), top: parseInt(top),
 					right: parseInt(right), bottom:parseInt(bottom)};
 		};
-		
+
 		/***************************\
 		* Main function start here! *
 		\***************************/
-		
+
 		var undefined;
 		var salt = "salt.akiroom.com";
 		var textAreaPosition = getElementPosition(targetElement);
@@ -86,7 +115,7 @@ Measurement = new function() {
 			dummyTextArea.id = dummyName;
 			var textAreaStyle = getStyle(targetElement)
 			dummyTextArea.style.cssText = textAreaStyle.cssText;
-			
+
 			// Fix for browser differece.
 			var isWordWrap = false;
 			if (targetElement.wrap == "off") {
@@ -110,7 +139,7 @@ Measurement = new function() {
 			dummyTextArea.style.position = 'absolute';
 			dummyTextArea.style.top = '0px';
 			dummyTextArea.style.left = '0px';
-			
+
 			// Firefox Support
 			dummyTextArea.style.width = textAreaStyle.width;
 			dummyTextArea.style.height = textAreaStyle.height;
@@ -123,25 +152,25 @@ Measurement = new function() {
 			dummyTextArea.style.paddingRight = textAreaStyle.paddingRight;
 			dummyTextArea.style.paddingBottom = textAreaStyle.paddingBottom;
 			dummyTextArea.style.paddingLeft = textAreaStyle.paddingLeft;
-			
-			
+
+
 			targetElement.parentNode.appendChild(dummyTextArea);
 		}
-		
+
 		// Set scroll amount to dummy textarea.
 		dummyTextArea.scrollLeft = targetElement.scrollLeft;
 		dummyTextArea.scrollTop = targetElement.scrollTop;
-		
+
 		// Set code strings.
 		var codeStr = targetElement.value;
-		
+
 		// Get caret character position.
 		var selPos = getCaretPosition(targetElement);
 		var leftText = codeStr.slice(0, selPos.start);
 		var selText = codeStr.slice(selPos.start, selPos.end);
 		var rightText = codeStr.slice(selPos.end, codeStr.length);
 		if (selText == '') selText = "a";
-		
+
 		// Set keyed text.
 		var processText = function (text) {
 			// Get array of [Character reference] or [Character] or [NewLine].
@@ -151,12 +180,12 @@ Measurement = new function() {
 			else
 				return '';
 		};
-		
+
 		// Set calculation text for in dummy text area.
 		dummyTextArea.innerHTML = (processText(leftText) +
 								  '<wbr><span id="' + dummyName + '_i">' + processText(selText) + '</span><wbr>' +
 								  processText(rightText));
-		
+
 		// Get caret absolutely pixel position.
 		var dummyTextAreaPos = getElementPosition(dummyTextArea);
 		var caretPos = getElementPosition(document.getElementById(dummyName+"_i"));
