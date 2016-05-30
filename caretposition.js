@@ -23,15 +23,19 @@ function setCaretPosition(elem, caretPos) {
 
 // count number of characters before cursor. arrayOfLines[i].length" will return total characters in one line.
 // parameter is current position of lines
+		  var lastlineChar = 0;
+			var textHeight = 0;
 			function calculate(chosenRow) {
 						 var totalChar = 0;
 		         var textArea = document.getElementById("myTextArea");
 		         var arrayOfLines = textArea.value.split("\n");
+						 textHeight = arrayOfLines.length;
 		         for(var i = 0;i < chosenRow-1;i++){
 		             totalChar += arrayOfLines[i].length;
 								 totalChar++;
-								 //console.log("each line" + totalChar);
 		         }
+						 lastlineChar = arrayOfLines[chosenRow-1].length;
+						 console.log("each line " + lastlineChar);
 						 return totalChar;
 		     }
 

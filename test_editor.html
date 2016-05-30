@@ -126,11 +126,11 @@ font-family: monospace;
             inkManager.startInkCapture(event.offsetX, event.offsetY);
         }
     }, false);
-
+    var moved = false; // detect of pointer has moved or not
     canvas.addEventListener('pointermove', function (event) {
         if (pointerId === event.pointerId) {
             event.preventDefault();
-
+            moved = true;
             textRenderer.drawContinue(event.offsetX, event.offsetY, context);
             inkManager.continueInkCapture(event.offsetX, event.offsetY);
         }
@@ -145,20 +145,25 @@ font-family: monospace;
             textRenderer.drawEnd(event.offsetX, event.offsetY, context);
 
             inkManager.endInkCapture();
-            if (event.offsetX == tempX && event.offsetY == tempY){
-              //console.log(tempX);
-              console.log(tempY);
-
-console.log("number of lines" + Math.ceil((tempY-15)/25));
+            if (!moved){
+              //console.log("y " + Math.ceil((tempY-15)/25) + " textHeight  " + document.getElementById("myTextArea").value.split("\n").length);
+              
+              if (Math.ceil((tempY-15)/25) <= document.getElementById("myTextArea").value.split("\n").length){
+              if (Math.ceil((tempX-4)/13) > lastlineChar){
+                console.log("first " + lastlineChar);
+                var totalChar = calculate(Math.ceil((tempY-15)/25)) + lastlineChar;
+              }
+              else {
               var totalChar = calculate(Math.ceil((tempY-15)/25)) + Math.ceil((tempX-4)/13);
-             console.log("total" + totalChar);
-             console.log("last line" +  Math.ceil(tempX/13));
+             //console.log("total" + totalChar);
+             console.log("last line " +  Math.ceil(tempX/13));
+           }
               setCaretPosition(document.getElementById('myTextArea'),totalChar);
 
               textRenderer.clear(context);
               inkManager.clear();
               result.innerHTML = '';
-            }
+            }}
             else {
               timer = (new Date()).getTime();
             }               //onClickCheck();
