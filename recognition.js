@@ -6,7 +6,8 @@
 
                 var inputUnit = new MyScript.TextInputUnit();
                 inputUnit.setComponents(inkManager.getStrokes());
-
+                textRenderer.clear(context);
+                inkManager.clear();
                 var units = [inputUnit];
 
                 textRecognizer.doSimpleRecognition(applicationKey, instanceId, units, hmacKey).then(
@@ -22,13 +23,18 @@
 
                             //insertAtCursor(myTextArea, result.innerHTML);
                             insertText(result.innerHTML);
+                            //console.log("insertion is " + insertion);
                             //console.log(result.innerHTML);
                             //console.log(myTextArea.value);
 
                             instanceId = undefined;
-                            textRenderer.clear(context);
-                            inkManager.clear();
+
                             result.innerHTML = '';
+                            if (insertion == true){
+                               insertion = false;
+                               deleteText();
+                            }
+
                             //insertAtCaret('editor',result.innerHTML);
                             hideKeyboard();
 
@@ -38,9 +44,10 @@
             }
         }
 
+
 function onClickCheck() {
     var timeNow = (new Date()).getTime();
     if (timeNow > (timer + 800)) {
 
       doRecognition();
-    }}
+    }};

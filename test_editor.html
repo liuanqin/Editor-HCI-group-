@@ -6,6 +6,7 @@
 <script type="text/javascript" src="./caretposition.js"></script>
 <script type="text/javascript" src="./background.js"></script>
 <script type="text/javascript" src="./recognition.js"></script>
+
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 
 </head>
@@ -15,12 +16,21 @@
 <div id="links">
 <input type="button" value="Type"  onclick="reset('board'); up('canvas-text-editor');moveCaretToEnd('myTextArea');document.getElementById('myTextArea').focus(); ">
 <input type="button" value="Write" onclick="reset('canvas-text-editor'); up('board');moveCaretToEnd('myTextArea');hideKeyboard;document.getElementById('myTextArea').focus();readonly='true'; ">
-<input type="button" value="Test" onclick="calculate(3);">
+<input type="button" value="Test" onclick="              deleteText();;">
 
 <div id="canvas-text-editor">
-  <textarea id="myTextArea" hideKeyboard; atuofocus></textarea>
+  <textarea id="myTextArea"  hideKeyboard; atuofocus>this is a sample line of code
+     edit it
+    Hopefully it works without <br/> bug
+  Go Mavericks!!!
+Notre Dame is the best</textarea>
 
 </div>
+
+
+<div id="box2" style="left:0; top:0"></div>
+<div id="box3" style="left:0; top:20"></div>
+
 
 <div id="board">
 
@@ -95,6 +105,32 @@ font-family: monospace;
 <script type="text/javascript" src="MyScript_Cloud-text-JS_Sample/myscript.min.js"></script>
 
 <script type="text/javascript" >
+var el = document.getElementById('canvas');
+var currTouch = null;
+var currTouchInterval = null;
+
+// tell touch from pencil touch
+  function  attachListeners() {
+        el.addEventListener('touchstart', enterForceTouch, false);
+        el.addEventListener('touchend', exitForceTouch, false);
+    };
+
+    enterForceTouch = function (evt) {
+        evt.preventDefault();
+        currTouch = evt;
+        currTouchInterval = setInterval(document.getElementById('box2').innerHTML=currTouch.touches[0].force, 10); // 100 times per second.
+    };
+
+
+
+    exitForceTouch = function (evt) {
+        evt.preventDefault();
+        currTouch = null;
+        //document.getElementById('box2').innerHTML=currTouch.touches[0].force; //Gives you 7 as your answer
+        clearInterval(currTouchInterval);
+    }
+
+
 
     var result = document.getElementById('result');
     var canvas = document.getElementById('canvas');
@@ -115,28 +151,45 @@ font-family: monospace;
 
     var tempX = -1;
     var tempY = -1;  //see if pointer moves
+    var moved = false;
+    //canvas.addEventListener('touchstart', enterForceTouch, false);
+
     canvas.addEventListener('pointerdown', function (event) {
+      attachListeners();     //  see if hands or pencil
+      if (document.getElementById('box2').innerHTML != 0){
+
         if (!pointerId) {
+            //if (document.getElementById('box2').innerHTML != 0){
             pointerId = event.pointerId;
             event.preventDefault();
+            moved = false; // detect of pointer has moved or not
+          //  console.log("first " + moved);
+          timer = (new Date()).getTime();
 
             textRenderer.drawStart(event.offsetX, event.offsetY);
             tempX = event.offsetX;
             tempY = event.offsetY;
             inkManager.startInkCapture(event.offsetX, event.offsetY);
         }
-    }, false);
-    var moved = false; // detect of pointer has moved or not
+    }}, false);
     canvas.addEventListener('pointermove', function (event) {
+       
         if (pointerId === event.pointerId) {
             event.preventDefault();
             moved = true;
+            timer = (new Date()).getTime();
+
+            //console.log(moved);
             textRenderer.drawContinue(event.offsetX, event.offsetY, context);
+            //console.log("x " + event.offsetX + "y " + event.offsetY);
             inkManager.continueInkCapture(event.offsetX, event.offsetY);
         }
     }, false);
 
     var timer = (new Date()).getTime();
+    var pickup_time = (new Date()).getTime();
+    var totalChar = 0;
+    var insertion = false;
     canvas.addEventListener('pointerup', function (event) {
         if (pointerId === event.pointerId) {
 
@@ -145,30 +198,40 @@ font-family: monospace;
             textRenderer.drawEnd(event.offsetX, event.offsetY, context);
 
             inkManager.endInkCapture();
-            if (!moved){
-              //console.log("y " + Math.ceil((tempY-15)/25) + " textHeight  " + document.getElementById("myTextArea").value.split("\n").length);
-              
+            //console.log("moved is " +moved);
+            var timeNow = (new Date()).getTime();
+            if((Math.abs(tempX - event.offsetX) < 3) && (Math.abs(tempY - event.offsetY) < 3) && (timeNow > (pickup_time + 1000))){
+              if (calculate(Math.ceil((tempY-15)/25)) != -1){
+              //console.log(document.getElementById("myTextArea").value.split("\n").length);
               if (Math.ceil((tempY-15)/25) <= document.getElementById("myTextArea").value.split("\n").length){
               if (Math.ceil((tempX-4)/13) > lastlineChar){
-                console.log("first " + lastlineChar);
-                var totalChar = calculate(Math.ceil((tempY-15)/25)) + lastlineChar;
+                totalChar = calculate(Math.ceil((tempY-15)/25)) + lastlineChar;
               }
               else {
-              var totalChar = calculate(Math.ceil((tempY-15)/25)) + Math.ceil((tempX-4)/13);
-             //console.log("total" + totalChar);
-             console.log("last line " +  Math.ceil(tempX/13));
+              totalChar = calculate(Math.ceil((tempY-15)/25)) + Math.round((tempX-4)/13);
+           }
+
+           if (insertion == true){
+
+             deleteText();
            }
               setCaretPosition(document.getElementById('myTextArea'),totalChar);
+            //  hideKeyboard();
+            insertText("               "); // 15 spaces
+            insertion = true;
+            setCaretPosition(document.getElementById('myTextArea'),totalChar);
+            //console.log(totalChar);
 
               textRenderer.clear(context);
               inkManager.clear();
               result.innerHTML = '';
-            }}
+            }}}
             else {
               timer = (new Date()).getTime();
             }               //onClickCheck();
-
+       pickup_time = (new Date()).getTime();
        pointerId = undefined;
+
       //doRecognition();
 }
     }, false);
@@ -186,7 +249,7 @@ font-family: monospace;
         }
     }, false);
 
-    var myVar = setInterval(function(){ onClickCheck() }, 500);
+    var myVar = setInterval(function(){ onClickCheck() }, 200);
 
     var canvas = document.getElementById('canvas');
     var parent = document.getElementById('board');
@@ -197,19 +260,20 @@ font-family: monospace;
     var left_space =0;
     var top_space =0;
 
-       setInterval(function () {
+    /*   setInterval(function () {
        var textArea = document.getElementById("myTextArea");
        var caretPosition = Measurement.caretPos(textArea);
        left_space = Math.floor((caretPosition.left - 4)/13);
        //console.log("left" + left_space);
        top_space = Math.floor((caretPosition.top - 128)/25);
        //console.log("top" + top_space);
-     },2000);
+     },2000);*/
 
      var lastFocused;
      $("#myTextArea").focus(function() {
        lastFocused = document.activeElement;
      });
+
 
 
 </script>

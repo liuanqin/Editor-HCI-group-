@@ -17,7 +17,7 @@ function setCaretPosition(elem, caretPos) {
 				if (elem.selectionStart !== undefined) {
 						elem.setSelectionRange(caretPos, caretPos);
 				}
-		}
+	}
 };
 
 
@@ -30,14 +30,18 @@ function setCaretPosition(elem, caretPos) {
 		         var textArea = document.getElementById("myTextArea");
 		         var arrayOfLines = textArea.value.split("\n");
 						 textHeight = arrayOfLines.length;
+						 if (textHeight >= chosenRow){
 		         for(var i = 0;i < chosenRow-1;i++){
 		             totalChar += arrayOfLines[i].length;
 								 totalChar++;
 		         }
 						 lastlineChar = arrayOfLines[chosenRow-1].length;
-						 console.log("each line " + lastlineChar);
+						 //console.log("last line " + lastlineChar);
 						 return totalChar;
 		     }
+			 	else{
+					return -1;
+				}}
 
 Measurement = new function() {
 	this.caretPos = function(textarea, mode) {
