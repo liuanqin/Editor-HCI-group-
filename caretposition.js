@@ -5,6 +5,8 @@ caretposition.js
 Copyright (c) 2012- Hiroki Akiyama http://akiroom.com/
 caretposition.js is free software distributed under the terms of the MIT license.
 */
+
+
 function setCaretPosition(elem, caretPos) {
 		var range;
 
@@ -25,18 +27,34 @@ function setCaretPosition(elem, caretPos) {
 // parameter is current position of lines
 		  var lastlineChar = 0;
 			var textHeight = 0;
+      var longline = 0;  //long lines before chosen point
+      var longboolean = false;
+			var arrayOfLines =null;
 			function calculate(chosenRow) {
 						 var totalChar = 0;
 		         var textArea = document.getElementById("myTextArea");
-		         var arrayOfLines = textArea.value.split("\n");
+		         arrayOfLines = textArea.value.split("\n");
 						 textHeight = arrayOfLines.length;
+             //console.log("text height" + textHeight);
+
+
+            //console.log("text height" + textHeight);
 						 if (textHeight >= chosenRow){
 		         for(var i = 0;i < chosenRow-1;i++){
-		             totalChar += arrayOfLines[i].length;
-								 totalChar++;
-		         }
+
+             totalChar += arrayOfLines[i].length;
+             totalChar++;
+             longboolean = false;
+						 //console.log("line " + i +"  is " + arrayOfLines[i][1]);
+             //console.log( i + "  " + arrayOfLines[i]);
+           }
+             //console.log(longline);
 						 lastlineChar = arrayOfLines[chosenRow-1].length;
+						 //console.log("total char" + totalChar);
+
+             longline = 0;
 						 //console.log("last line " + lastlineChar);
+             //console.log("total char is "+ totalChar);
 						 return totalChar;
 		     }
 			 	else{

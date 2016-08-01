@@ -9,6 +9,7 @@
                 textRenderer.clear(context);
                 inkManager.clear();
                 var units = [inputUnit];
+                var counter = 0;
 
                 textRecognizer.doSimpleRecognition(applicationKey, instanceId, units, hmacKey).then(
                         function (data) {
@@ -17,22 +18,25 @@
                             } else if (instanceId !== data.getInstanceId()) {
                                 return;
                             }
-                            result.innerHTML = data.getTextDocument().getTextSegmentResult().getSelectedCandidate().getLabel()+" ";
-
-
-
-                            //insertAtCursor(myTextArea, result.innerHTML);
+                            result.innerHTML = data.getTextDocument().getTextSegmentResult().getSelectedCandidate().getLabel();
+                            var resultLength = result.innerHTML.length;
+                            for (var i =0; i<resultLength;i++){
+                              if (arrayOfLines[Math.round(tempY/29)-1][Math.round(tempX/13)+i] != " "){
+                                break;
+                              }
+                              deleteText(1);
+                              counter++;
+                            }
+                            firstTouch = true;
                             insertText(result.innerHTML);
-                            //console.log("insertion is " + insertion);
-                            //console.log(result.innerHTML);
-                            //console.log(myTextArea.value);
+                            console.log(result.innerHTML);
 
                             instanceId = undefined;
 
                             result.innerHTML = '';
                             if (insertion == true){
                                insertion = false;
-                               deleteText();
+                               deleteText(15-counter);
                             }
 
                             //insertAtCaret('editor',result.innerHTML);

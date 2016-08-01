@@ -2,8 +2,21 @@ function init()
 {
 document.getElementById('myTextArea').focus();
 hideKeyboard();
+setCaretPosition(document.getElementById('myTextArea'),totalChar);
+//  hideKeyboard();
+console.log(editorwidth);
+console.log(editorheight);
 
+var str = "";
+for (var i=0; i<editorwidth;i++){
+str = str.concat(" ");
+}
+
+for(var j = 0; j<editorheight;j++){
+insertText(str);
+insertText("\n");
 };
+}
 
 var hideKeyboard = function() {
  document.activeElement.blur();
@@ -78,7 +91,7 @@ function up(id)
            }
            input.scrollTop = scrollPos;
          }
-         function deleteText() {
+         function deleteText(length) {
            var input = lastFocused;
            //console.log(input);
            if (input == undefined) { return; }
@@ -98,7 +111,7 @@ function up(id)
 
            var front = (input.value).substring(0, pos);
             //pos=pos+10;
-           var back = (input.value).substring(pos+15, input.value.length);
+           var back = (input.value).substring(pos+length, input.value.length);
            //console.log(pos);
           // console.log(front);
            //.log(back);
