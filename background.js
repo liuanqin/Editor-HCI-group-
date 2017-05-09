@@ -8,19 +8,68 @@ console.log(editorwidth);
 console.log(editorheight);
 
 var str = "";
-for (var i=0; i<editorwidth;i++){
+for (var i=0; i<editorwidth-2;i++){
 str = str.concat(" ");
 }
 
-for(var j = 0; j<editorheight;j++){
+for(var j = 0; j<editorheight-20;j++){
 insertText(str);
 insertText("\n");
 };
-}
+setCaretPosition(document.getElementById('myTextArea'),0);
 
+var s =
+        "It was the best of times, it was the worst of times,                 \n"
+         + "It was the age of wis dom, it was the age of foolishness,         \n"
+         + "it was the epoch of belief, it was the epoch of incredulity,      \n"
+         + "it was the season of Light, it was the of Darkness,               \n"
+         + "it was the spring of hope, it was the winter of despair,          \n"
+         + "we had everything before us, we had nothing before us             \n"
+         + "we were all going direct to Heaven, we were all going             \n"
+         + "direct indirect the other way-in short, the period was so far     \n"
+         + "like the present period, that some of its noisiest authorities    \n"
+         + "insisted on its beoing received, for good or for evil,            \n"
+         + "in the superlative degree of coparison only.                      \n"
+         +  "There were a king with a large jaw and a queen with              \n"
+         +  "a plain face, on the throne of England; there were               \n"
+         +  "a king with a large jaw and a queen with a fair face,            \n"
+         +  "on the throne of France.  it was                                 \n"
+         +  "clearer than crystal to the lords of the State preserves         \n"
+         +  "of loaves and fishes, that things in general were settled        \n"
+         +  "forever.                                                         \n"
+         +  "By Charles Dickens                                               \n";
+
+  insertText(s);}
+  /*var s =    "It was the best of times, it was the worst of times,                     "
+           + "It was the age of wis dom, it was the age of foolishness,                "
+           + "it was the epoch of belief, it was the epoch of incredulity,             "
+           + "it was the season of Light, it was the of Darkness,                      "
+           + "it was the spring of hope, it was the winter of despair,                 "
+           + "we had everything before us, we had nothing before us                    "
+           + "we were all going direct to Heaven, we were all going                    "
+           + "direct indirect the other way-in short, the period was so far            "
+           + "like the present period, that some of its noisiest authorities           "
+           + "insisted on its beoing received, for good or for evil,                   "
+           + "in the superlative degree of coparison only.                             "
+           + "There were a king with a large jaw and a queen with                      "
+           + "a plain face, on the throne of England; there were                       "
+           + "a king with a large jaw and a queen with a fair face,                    "
+           + "on the throne of France.  it was                                         "
+           + "clearer than crystal to the lords of the State preserves                 "
+           + "of loaves and fishes, that things in general were settled                "
+           + "forever.                                                                 "
+           + "1234567890123456789012345678901234567890123456789012345678901234567890123"
+           + "By Charles Dickens                                                       ";
+
+    insertText(s);
+    insertText("Theirs was a true love, thought Tony, one to stand the test of time. Eva, his soul-mate, was somehow even more beautiful than the day they first met, he realized. And even though she always seemed to say something interesting, it ultimately didn't matter, as he was happy just to hear her soft, melodic voice. Someday soon, he imagined, they would have children together, and their love would blossom as a family. These wonderful thoughts made him feel warm and tingly inside. Suddenly, without warning, Tony was yanked from his daydream by the doorbell. He let out a long sigh, realizing that that would be the courier with the divorce papers.");
+  }*/
+/*
+  Keeps keyboard from poping us
+*/
 var hideKeyboard = function() {
  document.activeElement.blur();
- var inputs = document.querySelectorAll('input');
+var inputs = document.querySelectorAll('input');
  for(var i=0; i < inputs.length; i++) {
   inputs[i].blur();
  }
@@ -37,10 +86,15 @@ function moveCaretToEnd(el) {
     }
 }
 
+//highlight the range of text for deletion
 
-//$('#myTextArea').on('focus', 'input', function() { $(this).blur(); });
+function highlightRange(el, start, end) {
+  var text = el.value;
+  var selected = text.substring(start, end)
 
-
+    console.log("selected text is  :"+ selected);
+    //console.log("text is  " + text);
+}
 
 function reset(id)
 {
@@ -91,6 +145,8 @@ function up(id)
            }
            input.scrollTop = scrollPos;
          }
+
+  // delete the text within next 'length' number of char
          function deleteText(length) {
            var input = lastFocused;
            //console.log(input);
@@ -112,9 +168,7 @@ function up(id)
            var front = (input.value).substring(0, pos);
             //pos=pos+10;
            var back = (input.value).substring(pos+length, input.value.length);
-           //console.log(pos);
-          // console.log(front);
-           //.log(back);
+
            input.value = front+back;
            //console.log(input.value);
            //pos = 10;
@@ -132,4 +186,21 @@ function up(id)
              input.focus();
            }
            input.scrollTop = scrollPos;
+         }
+
+
+
+         function insertNewlines(e)
+       {
+           // Get the number of cols defined (where we will insert breaks manually
+           var rowMaxChars = textarea.attr('cols');
+
+           // Calculate the row we were on as newlines + 1
+           var rowNum = (textarea.val().match(/\n/g) != null) ? textarea.val().match(/\n/g).length + 1 : 1;
+
+           // If the chars in textarea are greater than rowMaxChars * rowNum then insert newline
+           if( textarea.val().length > rowMaxChars*rowNum && e.keyCode != 8 )
+           {
+               textarea.val( textarea.val() + "\n" );
+           }
          }

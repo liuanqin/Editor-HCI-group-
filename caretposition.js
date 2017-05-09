@@ -9,6 +9,8 @@ caretposition.js is free software distributed under the terms of the MIT license
 
 function setCaretPosition(elem, caretPos) {
 		var range;
+		//elem.preventDefault();
+
 
 		if (elem.createTextRange) {
 				range = elem.createTextRange();
@@ -20,6 +22,7 @@ function setCaretPosition(elem, caretPos) {
 						elem.setSelectionRange(caretPos, caretPos);
 				}
 	}
+	hideKeyboard();
 };
 
 
@@ -30,31 +33,76 @@ function setCaretPosition(elem, caretPos) {
       var longline = 0;  //long lines before chosen point
       var longboolean = false;
 			var arrayOfLines =null;
+			var longEnd = false;
+			var hasLong = false;
+
+
+			function wrapFunction() {
+				var textArea = document.getElementById("myTextArea");
+
+						 var tempchar = 0;
+						 arrayOfLines = textArea.value.split("\n");
+
+
+						//console.log("text height" + textHeight);
+						 for(var i = 0;i <= 30;i++){
+							 console.log(arrayOfLines[i]);
+						 if(arrayOfLines[i].trim().length>=editorwidth-2){
+							 var templeng=arrayOfLines[i].length;
+
+							 var counter=editorwidth-2;
+							 while(arrayOfLines[i].charAt(counter)!=' '){
+								 counter --;
+							 }
+							 textArea.value = textArea.value.substring(0,tempchar+templeng)+textArea.value.substring(tempchar+templeng+1);
+							 //console.log("first:"+ textArea.value.substring(0,tempchar+counter)+'\n'+textArea.value.substring(tempchar+counter+1));
+							 textArea.value=textArea.value.substring(0,tempchar+counter)+'\n'+textArea.value.substring(tempchar+counter);
+							 //console.log("last:"+ textArea.value);
+
+
+
+					 arrayOfLines = textArea.value.split("\n");
+
+
+
+						 }
+						 tempchar += arrayOfLines[i].length;
+						 //console.log(i+"line :"+arrayOfLines[i].length);
+						 tempchar++;
+						 longboolean = false;
+
+					 }
+
+				 }
+
+  /*
+		This function will calculate the char position based on the x and y info.
+	*/
 			function calculate(chosenRow) {
+				var textArea = document.getElementById("myTextArea");
+
 						 var totalChar = 0;
-		         var textArea = document.getElementById("myTextArea");
+						 //ApplyLineBreaks(textArea);
 		         arrayOfLines = textArea.value.split("\n");
+
+
+						 //arrayOfLines = textArea.value.match(/.{73}/g)
 						 textHeight = arrayOfLines.length;
-             //console.log("text height" + textHeight);
 
-
-            //console.log("text height" + textHeight);
 						 if (textHeight >= chosenRow){
 		         for(var i = 0;i < chosenRow-1;i++){
+
 
              totalChar += arrayOfLines[i].length;
              totalChar++;
              longboolean = false;
-						 //console.log("line " + i +"  is " + arrayOfLines[i][1]);
-             //console.log( i + "  " + arrayOfLines[i]);
+
            }
-             //console.log(longline);
-						 lastlineChar = arrayOfLines[chosenRow-1].length;
-						 //console.log("total char" + totalChar);
+
+					 lastlineChar = arrayOfLines[chosenRow-1].length;
 
              longline = 0;
-						 //console.log("last line " + lastlineChar);
-             //console.log("total char is "+ totalChar);
+
 						 return totalChar;
 		     }
 			 	else{
